@@ -1,0 +1,23 @@
+{
+  "name": "brightloop-subscription-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Brightloop subscription management system — React admin dashboard with an Express/MongoDB API.",
+  "scripts": {
+    "setup": "npm install --prefix frontend && npm install --prefix server",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend",
+    "test": "npm test --prefix server",
+    "seed": "npm run seed --prefix server",
+    "start": "npm start --prefix server"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
