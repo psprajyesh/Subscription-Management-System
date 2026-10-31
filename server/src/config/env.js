@@ -14,6 +14,7 @@ const booleanFromString = z
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(5000),
+  BCRYPT_ROUNDS: z.coerce.number().int().min(4).max(15).default(12),
   MONGODB_URI: z.string().min(1).default("mongodb://127.0.0.1:27017/brightloop"),
   CLIENT_URL: z.string().url().default("http://localhost:5173"),
   COOKIE_SECURE: booleanFromString,
