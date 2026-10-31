@@ -3,9 +3,9 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import { env, isTest } from "./config/env.js";
+import { env, isTest, isProduction } from "./config/env.js";
 import routes from "./routes/index.js";
-import { apiLimiter } from "./middleware/rateLimit.js";
+import { createApiLimiter, createAuthLimiter } from "./middleware/rateLimit.js";
 import { notFound } from "./middleware/notFound.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -13,10 +13,14 @@ import { errorHandler } from "./middleware/errorHandler.js";
  * Builds the Express application without starting a listener.
  * Keeping this separate makes the app testable with supertest.
  */
-export function createApp() {
+export function createApp({ rateLimitEnabled = !isTest } = {}) {
   const app = express();
 
   app.disable("x-powered-by");
+
+  if (isProduction) {
+    app.set("trust proxy", 1);
+  }
 
   app.use(
     helmet({
@@ -40,7 +44,8 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser(env.COOKIE_SECRET));
 
-  app.use("/api", apiLimiter);
+  app.use("/api", createApiLimiter({ enabled: rateLimitEnabled }));
+  app.use("/api/auth", createAuthLimiter({ enabled: rateLimitEnabled }));
   app.use("/api", routes);
 
   app.use(notFound);

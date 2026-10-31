@@ -53,8 +53,16 @@ function normalizeError(err) {
     return { status: 400, code: "INVALID_JSON", message: "Request body contains invalid JSON" };
   }
 
-  if (err?.name === "JsonWebTokenError" || err?.name === "TokenExpiredError") {
-    return { status: 401, code: "UNAUTHORIZED", message: "Session is invalid or has expired" };
+  if (err?.name === "TokenExpiredError") {
+    return { status: 401, code: "TOKEN_EXPIRED", message: "Session has expired" };
+  }
+
+  if (err?.name === "JsonWebTokenError") {
+    return { status: 401, code: "INVALID_TOKEN", message: "Session is invalid" };
+  }
+
+  if (err?.name === "NotBeforeError") {
+    return { status: 401, code: "INVALID_TOKEN", message: "Session is not active yet" };
   }
 
   if (err?.isOperational) {
