@@ -28,4 +28,11 @@ export async function recordAudit({
   }
 }
 
+/** Returns the writable field names supplied by a validated request. */
+export function auditFieldNames(payload, exclude = []) {
+  return Object.keys(payload).filter(
+    (field) => payload[field] !== undefined && !exclude.includes(field),
+  );
+}
+
 export default recordAudit;

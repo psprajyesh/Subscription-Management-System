@@ -1,4 +1,4 @@
-import { Counter, RefreshToken, User } from "../models/index.js";
+import { Counter, RefreshToken, Staff, User } from "../models/index.js";
 import { AppError } from "../utils/AppError.js";
 import { logger } from "../utils/logger.js";
 import {
@@ -102,9 +102,22 @@ export async function bootstrapAdmin({ name, email, password }, req) {
     user = new User({ name, email, role: "admin", status: "active" });
     await user.setPassword(password);
     await user.save();
+
+    // Every user has a matching staff profile (1:1), including the bootstrap admin.
+    await Staff.create({
+      user: user._id,
+      title: "Administrator",
+      permissions: ["*"],
+      status: "active",
+      invitedBy: user._id,
+      joinedAt: new Date(),
+    });
   } catch (error) {
     // Release the bootstrap claim so a legitimate retry after a transient
     // database failure is still possible.
+    if (user?._id) {
+      await User.deleteOne({ _id: user._id }).catch(() => {});
+    }
     await Counter.deleteOne({ _id: "bootstrap" }).catch(() => {});
     throw error;
   }

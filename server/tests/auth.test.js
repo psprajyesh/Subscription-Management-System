@@ -4,7 +4,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import { createApp } from "../src/app.js";
 import { env } from "../src/config/env.js";
-import { AuditLog, Counter, RefreshToken, User } from "../src/models/index.js";
+import { AuditLog, Counter, RefreshToken, Staff, User } from "../src/models/index.js";
 import { protect, authorize } from "../src/middleware/auth.js";
 import { errorHandler } from "../src/middleware/errorHandler.js";
 import { ACCESS_COOKIE, REFRESH_COOKIE } from "../src/utils/cookies.js";
@@ -44,6 +44,7 @@ beforeEach(async () => {
   await Promise.all([
     RefreshToken.deleteMany({}),
     AuditLog.deleteMany({}),
+    Staff.deleteMany({}),
     User.deleteMany({}),
     Counter.deleteOne({ _id: "bootstrap" }),
   ]);
