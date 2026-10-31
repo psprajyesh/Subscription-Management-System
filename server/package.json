@@ -10,7 +10,8 @@
     "start": "node src/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed": "node src/utils/seed.js"
+    "seed": "node src/utils/seed.js",
+    "jobs": "node src/scripts/run-subscription-jobs.js"
   },
   "engines": {
     "node": ">=20"

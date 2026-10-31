@@ -99,3 +99,76 @@ export async function currentUserId(agent) {
 
   return response.body.data.user.id;
 }
+
+export async function createCustomerFixture({
+  name = "Acme Labs",
+  email = "acme@brightloop.test",
+  status = "active",
+  company = "Acme",
+} = {}) {
+  return Customer.create({ name, email, company, status });
+}
+
+export async function createCatalog({
+  productName = "Brightloop Analytics",
+  planName = "Starter",
+  billingCycle = "monthly",
+  priceMinor = 100_000,
+  trialDays = 0,
+  planStatus = "active",
+  productStatus = "active",
+} = {}) {
+  const product = await Product.create({
+    name: productName,
+    status: productStatus,
+  });
+
+  const plan = await Plan.create({
+    product: product._id,
+    name: planName,
+    billingCycle,
+    priceMinor,
+    trialDays,
+    status: planStatus,
+  });
+
+  return { product, plan };
+}
+
+export async function createSubscriptionFixture({
+  customer,
+  plan,
+  status = "active",
+  quantity = 1,
+  priceMinor = plan.priceMinor,
+  billingCycle = plan.billingCycle,
+  startedAt = new Date("2026-01-01T00:00:00.000Z"),
+  billingAnchorDay = new Date(startedAt).getUTCDate(),
+  currentPeriodStart = startedAt,
+  currentPeriodEnd = new Date(
+    new Date(startedAt).getTime() + 31 * 24 * 60 * 60 * 1000,
+  ),
+  nextBillingAt = currentPeriodEnd,
+  trialEndsAt = null,
+  taxRateBasisPoints = 0,
+  ...overrides
+} = {}) {
+  return Subscription.create({
+    customer: customer._id,
+    plan: plan._id,
+    status,
+    quantity,
+    priceMinor,
+    billingCycle,
+    billingAnchorDay,
+    currency: "INR",
+    taxRateBasisPoints,
+    startedAt,
+    trialEndsAt,
+    currentPeriodStart,
+    currentPeriodEnd,
+    nextBillingAt,
+    ...overrides,
+  });
+}
+

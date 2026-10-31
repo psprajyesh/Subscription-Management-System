@@ -12,6 +12,7 @@
     "lint": "npm run lint --prefix frontend",
     "test": "npm test --prefix server",
     "seed": "npm run seed --prefix server",
+    "jobs": "node server/src/scripts/run-subscription-jobs.js",
     "start": "npm start --prefix server"
   },
   "engines": {

@@ -508,6 +508,8 @@ export async function seedDatabase() {
         status: spec.status,
         quantity: 1,
         priceMinor: plan.priceMinor,
+        billingCycle: plan.billingCycle,
+        billingAnchorDay: iso(spec.started).getUTCDate(),
         currency: "INR",
         taxRateBasisPoints: standardTax.rateBasisPoints,
         startedAt: iso(spec.started),

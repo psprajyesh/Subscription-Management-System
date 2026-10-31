@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import {
+  BILLING_CYCLES,
   BLOCKING_SUBSCRIPTION_STATUSES,
   CURRENCIES,
+  DISCOUNT_DURATIONS,
+  DISCOUNT_TYPES,
   SUBSCRIPTION_STATUSES,
 } from "../config/constants.js";
 import { baseSchemaOptions, integerValidator } from "./schemaOptions.js";
@@ -36,6 +39,20 @@ const subscriptionSchema = new mongoose.Schema(
       min: [0, "Subscription price cannot be negative"],
       validate: integerValidator,
     },
+    // Billing-cycle snapshot. Older subscriptions may not have it; reads fall
+    // back to the referenced plan's current cycle.
+    billingCycle: {
+      type: String,
+      enum: BILLING_CYCLES,
+    },
+    // Original UTC day-of-month used to keep Jan 31 -> Feb 28 -> Mar 31
+    // anniversaries from drifting earlier every month.
+    billingAnchorDay: {
+      type: Number,
+      min: [1, "Billing anchor day must be at least 1"],
+      max: [31, "Billing anchor day must be at most 31"],
+      validate: integerValidator,
+    },
     currency: {
       type: String,
       enum: CURRENCIES,
@@ -51,6 +68,46 @@ const subscriptionSchema = new mongoose.Schema(
       trim: true,
       uppercase: true,
       default: "",
+    },
+    // Discount terms are snapshotted so later edits to a discount do not
+    // silently change a live subscription's price.
+    discountType: {
+      type: String,
+      enum: DISCOUNT_TYPES,
+      default: null,
+    },
+    discountValue: {
+      type: Number,
+      default: null,
+      min: [0, "Discount value cannot be negative"],
+      validate: integerValidator,
+    },
+    discountDuration: {
+      type: String,
+      enum: DISCOUNT_DURATIONS,
+      default: null,
+    },
+    discountDurationMonths: {
+      type: Number,
+      default: null,
+      min: [1, "Discount duration must be at least 1 month"],
+      validate: integerValidator,
+    },
+    discountApplications: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount applications cannot be negative"],
+      validate: integerValidator,
+    },
+    discountValidUntil: {
+      type: Date,
+      default: null,
+    },
+    // Start of the discount's calendar lifetime. Repeating discounts expire
+    // after `discountDurationMonths` months regardless of billing cycle.
+    discountStartedAt: {
+      type: Date,
+      default: null,
     },
     taxRateBasisPoints: {
       type: Number,
@@ -106,6 +163,14 @@ const subscriptionSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    pastDueAt: {
+      type: Date,
+      default: null,
+    },
+    lastRenewedAt: {
+      type: Date,
+      default: null,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -127,7 +192,7 @@ subscriptionSchema.pre("validate", function validatePeriod() {
 
 /**
  * Prevent duplicate live subscriptions for the same customer/plan pair.
- * Canceled, expired and past-due subscriptions no longer block a new one.
+ * Canceled and expired subscriptions no longer block a new one.
  */
 subscriptionSchema.index(
   { customer: 1, plan: 1 },
@@ -138,6 +203,8 @@ subscriptionSchema.index(
 );
 subscriptionSchema.index({ customer: 1, status: 1 });
 subscriptionSchema.index({ status: 1, nextBillingAt: 1 });
+subscriptionSchema.index({ status: 1, cancelAtPeriodEnd: 1, currentPeriodEnd: 1 });
+subscriptionSchema.index({ status: 1, trialEndsAt: 1 });
 subscriptionSchema.index({ plan: 1 });
 subscriptionSchema.index({ createdAt: -1 });
 

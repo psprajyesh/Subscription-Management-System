@@ -8,6 +8,7 @@ import planRoutes from "./plan.routes.js";
 import productRoutes from "./product.routes.js";
 import settingsRoutes from "./settings.routes.js";
 import staffRoutes from "./staff.routes.js";
+import subscriptionRoutes from "./subscription.routes.js";
 import taxRoutes from "./tax.routes.js";
 
 const router = Router();
@@ -17,6 +18,7 @@ router.use("/auth", authRoutes);
 router.use("/customers", customerRoutes);
 router.use("/products", productRoutes);
 router.use("/plans", planRoutes);
+router.use("/subscriptions", subscriptionRoutes);
 router.use("/discounts", discountRoutes);
 router.use("/taxes", taxRoutes);
 router.use("/staff", staffRoutes);

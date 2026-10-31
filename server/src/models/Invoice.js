@@ -51,6 +51,17 @@ const invoiceSchema = new mongoose.Schema(
       ref: "Subscription",
       default: null,
     },
+    // Renewal invoices carry their billing period. The partial unique index
+    // below makes retries and concurrent workers safe: one invoice per
+    // subscription period can ever be created.
+    billingPeriodStart: {
+      type: Date,
+      default: null,
+    },
+    billingPeriodEnd: {
+      type: Date,
+      default: null,
+    },
     items: {
       type: [invoiceItemSchema],
       default: [],
@@ -144,6 +155,13 @@ invoiceSchema.pre("validate", function validateTotals() {
 invoiceSchema.index({ customer: 1, status: 1, issueDate: -1 });
 invoiceSchema.index({ subscription: 1, issueDate: -1 });
 invoiceSchema.index({ status: 1, dueDate: 1 });
+invoiceSchema.index(
+  { subscription: 1, billingPeriodStart: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { billingPeriodStart: { $type: "date" } },
+  },
+);
 
 export const Invoice = mongoose.models.Invoice || mongoose.model("Invoice", invoiceSchema);
 

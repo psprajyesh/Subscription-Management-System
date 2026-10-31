@@ -1,6 +1,10 @@
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { connectDB, disconnectDB } from "./config/db.js";
+import {
+  startSubscriptionJobScheduler,
+  stopSubscriptionJobScheduler,
+} from "./jobs/scheduler.js";
 import { logger } from "./utils/logger.js";
 
 async function start() {
@@ -12,8 +16,11 @@ async function start() {
     logger.info(`Health check: http://localhost:${env.PORT}/api/health`);
   });
 
+  startSubscriptionJobScheduler();
+
   const shutdown = async (signal) => {
     logger.info(`${signal} received — shutting down gracefully`);
+    stopSubscriptionJobScheduler();
     server.close(async () => {
       try {
         await disconnectDB();

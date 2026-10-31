@@ -11,6 +11,11 @@ const booleanFromString = z
   .default("false")
   .transform((value) => value === "true");
 
+const booleanFromStringDefaultTrue = z
+  .enum(["true", "false"])
+  .default("true")
+  .transform((value) => value === "true");
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(5000),
@@ -25,6 +30,9 @@ const envSchema = z.object({
   REFRESH_TOKEN_TTL: z.string().default("7d"),
   INVOICE_PREFIX: z.string().min(1).default("INV"),
   INVOICE_DUE_DAYS: z.coerce.number().int().min(0).default(7),
+  SUBSCRIPTION_JOBS_ENABLED: booleanFromStringDefaultTrue,
+  SUBSCRIPTION_JOBS_CRON: z.string().min(1).default("0 * * * *"),
+  SUBSCRIPTION_JOB_BATCH_SIZE: z.coerce.number().int().min(1).max(1000).default(100),
   RAZORPAY_KEY_ID: z.string().optional().default(""),
   RAZORPAY_KEY_SECRET: z.string().optional().default(""),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional().default(""),
